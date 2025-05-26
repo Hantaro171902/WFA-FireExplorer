@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -46,43 +47,116 @@ namespace WFA_FireExplorer
             }
         }
 
-        private TreeNode CreateDirNode(DirectoryInfo dirInfo)
+        private TreeNode CreateDirNode(DirectoryInfo dir)
         {
-            var node = new TreeNode(dirInfo.Name) { Tag = dirInfo.FullName };
+            TreeNode node = new TreeNode(dir.Name)
+            {
+                Tag = dir.FullName // Store the full path in the tag
+            };
             try
             {
-                foreach (var dir in dirInfo.GetDirectories())
+                foreach (DirectoryInfo subDir in dir.GetDirectories())
                 {
-                    node.Nodes.Add(CreateDirNode(dir));
+                    // Attempting access
+                    try
+                    {
+                        node.Nodes.Add(CreateDirNode(subDir));
+                    }
+                    catch (UnauthorizedAccessException)
+                    {
+                        // Handle access denied exceptions
+                        //node.Nodes.Add(new TreeNode(subDir.Name + " (Access Denied)") { ForeColor = Color.Red });
+                    }
                 }
             }
             catch (UnauthorizedAccessException)
             {
                 // Handle access denied exceptions
-                node.Nodes.Add(new TreeNode("Access Denied") { ForeColor = Color.Red });
+                //node.Nodes.Add(new TreeNode("Access Denied") { ForeColor = Color.Red });
             }
             return node;
         }
 
         private void NavigateTo(string path)
         {
-            if (currHistoryIdx >= 0 && currHistoryIdx < navHistory.Count - 1 && 
-                navHistory[currHistoryIdx] == path)  { 
-                
-                return; // Already at the current path
-            }
+            // For folders
+            var folderIcon = IconHelper.GetFileIcon(path, true);
+            icons.Images.Add(path, folderIcon);
+            item.ImageKey = dir;
 
-            // Trim forward history if navigating to a new path
-            if (currHistoryIdx < navHistory.Count - 1)
+            // For files
+            var fileIcon = IconHelper.GetFileIcon(file, false);
+            icons.Images.Add(file, fileIcon);
+            item.ImageKey = file;
+
+            try
             {
-                navHistory = navHistory.Take(currHistoryIdx + 1).ToList();
+                // Check if directory exists and is accessible
+                DirectoryInfo di = new DirectoryInfo(path);
+
+                if (!di.Exists)
+                {
+                    MessageBox.Show("The directory does not exist.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                if ((di.Attributes & FileAttributes.System) == FileAttributes.System ||
+                    (di.Attributes & FileAttributes.Hidden) == FileAttributes.Hidden)
+                {
+                    MessageBox.Show("This directory is restricted or hidden.", "Access Denied", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                // Clear list before populating
+                listView1.Items.Clear();
+
+                // Add folders
+                foreach (string dir in Directory.GetDirectories(path))
+                {
+                    try
+                    {
+                        DirectoryInfo subDir = new DirectoryInfo(dir);
+                        if ((subDir.Attributes & FileAttributes.System) != FileAttributes.System)
+                        {
+                            ListViewItem item = new ListViewItem(subDir.Name);
+                            item.SubItems.Add("Folder");
+                            item.Tag = dir;
+                            listView1.Items.Add(item);
+                        }
+                    }
+                    catch (UnauthorizedAccessException)
+                    {
+                        // Optionally log or ignore
+                    }
+                }
+
+                // Add files
+                foreach (string file in Directory.GetFiles(path))
+                {
+                    try
+                    {
+                        FileInfo fi = new FileInfo(file);
+                        ListViewItem item = new ListViewItem(fi.Name);
+                        item.SubItems.Add(fi.Extension);
+                        item.Tag = file;
+                        listView1.Items.Add(item);
+                    }
+                    catch (UnauthorizedAccessException)
+                    {
+                        // Optionally log or ignore
+                    }
+                }
+
+                txt_path.Text = path; // Update the path box
             }
-
-            navHistory.Add(path);
-            currHistoryIdx = navHistory.Count - 1;
-
-            txt_path.Text = path;
-            LoadFileList(path);
+            catch (UnauthorizedAccessException)
+            {
+                MessageBox.Show("Access to this directory is denied.", "Access Denied", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("An error occurred:\n" + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         //private void btn_open_Click(object sender, EventArgs e)
