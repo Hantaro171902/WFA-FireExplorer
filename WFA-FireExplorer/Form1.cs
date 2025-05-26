@@ -16,10 +16,21 @@ namespace WFA_FireExplorer
     {
         private List<string> navHistory = new List<string>();
         private int currHistoryIdx = -1;
+        private ImageList icons; // Declare the ImageList here
 
         public Form1()
         {
             InitializeComponent();
+
+            // Initialize the ImageList in the constructor
+            icons = new ImageList();
+            icons.ImageSize = new Size(16, 16);
+            listView1.SmallImageList = icons;
+            listView1.View = View.Details;
+            listView1.Columns.Add("Name", 200);
+            listView1.Columns.Add("Type", 100);
+            listView1.FullRowSelect = true;
+
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -28,9 +39,8 @@ namespace WFA_FireExplorer
             string startupPath = @"C:\";
 
             LoadDirTree(homePath);     // TreeView shows user home
-            NavigateTo(startupPath);         // ListView shows C:\
+            NavigateTo(startupPath);   // ListView shows C:\
         }
-
 
         private void LoadDirTree(string rootPath)
         {
@@ -39,7 +49,6 @@ namespace WFA_FireExplorer
             {
                 var rootDirInfo = new DirectoryInfo(rootPath);
                 treeView1.Nodes.Add(CreateDirNode(rootDirInfo));
-                
             }
             catch (Exception ex)
             {
@@ -57,7 +66,6 @@ namespace WFA_FireExplorer
             {
                 foreach (DirectoryInfo subDir in dir.GetDirectories())
                 {
-                    // Attempting access
                     try
                     {
                         node.Nodes.Add(CreateDirNode(subDir));
@@ -65,33 +73,21 @@ namespace WFA_FireExplorer
                     catch (UnauthorizedAccessException)
                     {
                         // Handle access denied exceptions
-                        //node.Nodes.Add(new TreeNode(subDir.Name + " (Access Denied)") { ForeColor = Color.Red });
                     }
                 }
             }
             catch (UnauthorizedAccessException)
             {
                 // Handle access denied exceptions
-                //node.Nodes.Add(new TreeNode("Access Denied") { ForeColor = Color.Red });
             }
             return node;
         }
 
         private void NavigateTo(string path)
         {
-            // For folders
-            var folderIcon = IconHelper.GetFileIcon(path, true);
-            icons.Images.Add(path, folderIcon);
-            item.ImageKey = dir;
-
-            // For files
-            var fileIcon = IconHelper.GetFileIcon(file, false);
-            icons.Images.Add(file, fileIcon);
-            item.ImageKey = file;
 
             try
             {
-                // Check if directory exists and is accessible
                 DirectoryInfo di = new DirectoryInfo(path);
 
                 if (!di.Exists)
@@ -107,12 +103,11 @@ namespace WFA_FireExplorer
                     return;
                 }
 
-                // Clear list before populating
                 listView1.Items.Clear();
 
-                // Add folders
                 foreach (string dir in Directory.GetDirectories(path))
                 {
+
                     try
                     {
                         DirectoryInfo subDir = new DirectoryInfo(dir);
@@ -121,6 +116,19 @@ namespace WFA_FireExplorer
                             ListViewItem item = new ListViewItem(subDir.Name);
                             item.SubItems.Add("Folder");
                             item.Tag = dir;
+
+                            // Add folder icon
+                            var folderIcon = IconHelper.GetFileIcon(dir, true);
+                            //icons.Images.Add(dir, folderIcon);
+                            //item.ImageKey = dir;
+                            string ext = Path.GetExtension(dir).ToLower();
+                            if (!icons.Images.ContainsKey(ext))
+                            {
+                                icons.Images.Add(ext, folderIcon);
+                            }
+                            item.ImageKey = ext;
+
+
                             listView1.Items.Add(item);
                         }
                     }
@@ -130,7 +138,6 @@ namespace WFA_FireExplorer
                     }
                 }
 
-                // Add files
                 foreach (string file in Directory.GetFiles(path))
                 {
                     try
@@ -139,6 +146,19 @@ namespace WFA_FireExplorer
                         ListViewItem item = new ListViewItem(fi.Name);
                         item.SubItems.Add(fi.Extension);
                         item.Tag = file;
+
+                        // Add file icon
+                        var fileIcon = IconHelper.GetFileIcon(file, false);
+                        //icons.Images.Add(file, fileIcon);
+                        //item.ImageKey = file;
+                        string ext = Path.GetExtension(file).ToLower();
+                        if (!icons.Images.ContainsKey(ext))
+                        {
+                            icons.Images.Add(ext, fileIcon);
+                        }
+                        item.ImageKey = ext;
+
+
                         listView1.Items.Add(item);
                     }
                     catch (UnauthorizedAccessException)
@@ -159,21 +179,6 @@ namespace WFA_FireExplorer
             }
         }
 
-        //private void btn_open_Click(object sender, EventArgs e)
-        //{
-        //    using (FolderBrowserDialog fbd = new FolderBrowserDialog())
-        //    {
-        //        fbd.Description = "Select a folder to explore";
-        //        if (fbd.ShowDialog() == DialogResult.OK)
-        //        {
-        //            webBrowser1.Url = new Uri(fbd.SelectedPath);
-        //            txt_path.Text = fbd.SelectedPath;
-        //            // Here you can add code to handle the selected folder
-        //            MessageBox.Show($"Selected folder: {fbd.SelectedPath}");
-        //        }
-        //    }
-        //}
-
         private void btn_back_Click(object sender, EventArgs e)
         {
             if (currHistoryIdx > 0)
@@ -181,7 +186,7 @@ namespace WFA_FireExplorer
                 currHistoryIdx--;
                 string path = navHistory[currHistoryIdx];
                 txt_path.Text = path;
-                LoadFileList(path);
+                LoadFilesInListView(path);
             }
         }
 
@@ -192,22 +197,12 @@ namespace WFA_FireExplorer
                 currHistoryIdx++;
                 string path = navHistory[currHistoryIdx];
                 txt_path.Text = path;
-                LoadFileList(path);
+                LoadFilesInListView(path);
             }
         }
 
-        //private void btn_go_Click(object sender, EventArgs e)
-        //{
-        //    string path = txt_path.Text;
-        //    if (Directory.Exists(path))
-        //    {
-        //        NavigateTo(path);
-        //    }
-        //    else
-        //    {
-        //        MessageBox.Show("The folder doesn't exist.");
-        //    }
-        //}
+
+
 
         private void treeView1_AfterSelect(object sender, TreeViewEventArgs e)
         {
@@ -217,33 +212,29 @@ namespace WFA_FireExplorer
             }
         }
 
-        private void LoadFileList(string path)
+        private void LoadFilesInListView(string path)
         {
+            listView1.Items.Clear();
             try
             {
-                listView1.Items.Clear();
-                var dirInfo = new DirectoryInfo(path);
-                foreach (var file in dirInfo.GetFiles())
+                var dir = new DirectoryInfo(path);
+                foreach (var file in dir.GetFiles())
                 {
-                    listView1.Items.Add(new ListViewItem(file.Name) { Tag = file.FullName });
+                    listView1.Items.Add(new ListViewItem(file.Name));
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error loading file list: {ex.Message}");
+                MessageBox.Show("Error reading folder: " + ex.Message);
             }
         }
 
-        private string GetFullPath(TreeNode node)
+        private string GetFullPathFromTreeNode(TreeNode node)
         {
             if (node.Parent == null)
-            {
-                return node.Tag as string;
-            }
-            else
-            {
-                return Path.Combine(GetFullPath(node.Parent), node.Tag as string);
-            }
+                return node.Text;
+
+            return Path.Combine(GetFullPathFromTreeNode(node.Parent), node.Text);
         }
     }
 }
