@@ -70,7 +70,7 @@ namespace WFA_FireExplorer
             string startupPath = @"C:\";
 
             LoadDirTree(homePath);     // TreeView shows user home
-            NavigateTo(startupPath);   // ListView shows C:\
+            NavigateToHistory(startupPath);   // ListView shows C:\
         }
 
         private void LoadDirTree(string rootPath)
@@ -114,6 +114,23 @@ namespace WFA_FireExplorer
                 // Handle access denied exceptions
             }
             return node;
+        }
+
+        // Create a wrapper method for the NavigateTo function
+        private void NavigateToHistory(string path)
+        {
+            // Prevent adding duplicate entry when navigating navigating the same path
+            if (currHistoryIdx == -1 || navHistory[currHistoryIdx] != path)
+            {
+                // Remove foward history
+                if (currHistoryIdx < navHistory.Count - 1)
+                {
+                    navHistory.RemoveRange(currHistoryIdx + 1, navHistory.Count - currHistoryIdx - 1);
+
+                }
+                navHistory.Add(path);
+                currHistoryIdx = navHistory.Count - 1;
+            }
         }
 
         private void NavigateTo(string path)
@@ -218,8 +235,8 @@ namespace WFA_FireExplorer
             {
                 currHistoryIdx--;
                 string path = navHistory[currHistoryIdx];
-                txt_path.Text = path;
-                LoadFilesInListView(path);
+                //txt_path.Text = path;
+                NavigateTo(path);
             }
         }
 
@@ -229,8 +246,8 @@ namespace WFA_FireExplorer
             {
                 currHistoryIdx++;
                 string path = navHistory[currHistoryIdx];
-                txt_path.Text = path;
-                LoadFilesInListView(path);
+                //txt_path.Text = path;
+                NavigateTo(path);
             }
         }
 
@@ -259,7 +276,7 @@ namespace WFA_FireExplorer
         {
             if (e.Node?.Tag is string path && Directory.Exists(path))
             {
-                NavigateTo(path);
+                NavigateToHistory(path);
             }
         }
 
@@ -286,6 +303,61 @@ namespace WFA_FireExplorer
                 return node.Text;
 
             return Path.Combine(GetFullPathFromTreeNode(node.Parent), node.Text);
+        }
+
+        // Find button click event handler
+        private void btn_find_Click(object sender, EventArgs e)
+        {
+            string searchTerm = txt_find.Text.Trim();
+            string currentPath = txt_path.Text;
+
+            if (string.IsNullOrEmpty(searchTerm))
+            {
+                MessageBox.Show("Please enter a something to search .", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (!Directory.Exists(currentPath))
+            {
+                MessageBox.Show("The current path does not exist.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            listView1.Items.Clear();
+
+            try
+            {
+                var matchedFiles = Directory.GetFiles(currentPath, "*" + searchTerm + "*", SearchOption.AllDirectories)
+                    .Where(file => !new FileInfo(file).Attributes.HasFlag(FileAttributes.System | FileAttributes.Hidden));
+
+                var matchedDirs = Directory.GetDirectories(currentPath, "*" + searchTerm + "*", SearchOption.AllDirectories)
+                    .Where(dir => !new DirectoryInfo(dir).Attributes.HasFlag(FileAttributes.System | FileAttributes.Hidden));
+
+                foreach (var file in matchedFiles)
+                {
+                    FileInfo fi = new FileInfo(file);
+                    var item = new ListViewItem(fi.Name);
+                    item.SubItems.Add(fi.Extension);
+                    item.Tag = file;
+
+                    var fileIcon = IconHelper.GetFileIcon(file, false);
+                    if (!icons.Images.ContainsKey(file))
+                        icons.Images.Add(file, fileIcon);
+                    item.ImageKey = file;
+
+                    listView1.Items.Add(item);
+                }
+
+                if (listView1.Items.Count == 0)
+                {
+                    MessageBox.Show("No files found matching the search term.", "Search Result", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("An error occurred while searching: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+            }
         }
     }
 }

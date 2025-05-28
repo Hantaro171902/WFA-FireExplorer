@@ -32,28 +32,28 @@
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
             this.btn_back = new System.Windows.Forms.Button();
             this.btn_next = new System.Windows.Forms.Button();
-            this.btn_open = new System.Windows.Forms.Button();
-            this.btn_go = new System.Windows.Forms.Button();
+            this.btn_find = new System.Windows.Forms.Button();
             this.lbl_path = new System.Windows.Forms.Label();
             this.txt_path = new System.Windows.Forms.TextBox();
             this.treeView1 = new System.Windows.Forms.TreeView();
             this.listView1 = new System.Windows.Forms.ListView();
             this.imageList1 = new System.Windows.Forms.ImageList(this.components);
             this.panel1 = new System.Windows.Forms.Panel();
+            this.txt_find = new System.Windows.Forms.TextBox();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
             // webBrowser1
             // 
-            this.webBrowser1.Location = new System.Drawing.Point(568, 70);
+            this.webBrowser1.Location = new System.Drawing.Point(674, 70);
             this.webBrowser1.Name = "webBrowser1";
-            this.webBrowser1.Size = new System.Drawing.Size(81, 310);
+            this.webBrowser1.Size = new System.Drawing.Size(269, 405);
             this.webBrowser1.TabIndex = 10;
             // 
             // btn_back
             // 
             this.btn_back.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btn_back.Location = new System.Drawing.Point(17, 20);
+            this.btn_back.Location = new System.Drawing.Point(17, 24);
             this.btn_back.Name = "btn_back";
             this.btn_back.Size = new System.Drawing.Size(35, 23);
             this.btn_back.TabIndex = 1;
@@ -64,7 +64,7 @@
             // btn_next
             // 
             this.btn_next.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btn_next.Location = new System.Drawing.Point(58, 21);
+            this.btn_next.Location = new System.Drawing.Point(58, 24);
             this.btn_next.Name = "btn_next";
             this.btn_next.Size = new System.Drawing.Size(35, 23);
             this.btn_next.TabIndex = 2;
@@ -72,30 +72,21 @@
             this.btn_next.UseVisualStyleBackColor = true;
             this.btn_next.Click += new System.EventHandler(this.btn_next_Click);
             // 
-            // btn_open
+            // btn_find
             // 
-            this.btn_open.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btn_open.Location = new System.Drawing.Point(536, 23);
-            this.btn_open.Name = "btn_open";
-            this.btn_open.Size = new System.Drawing.Size(113, 23);
-            this.btn_open.TabIndex = 3;
-            this.btn_open.Text = "Open Manually";
-            this.btn_open.UseVisualStyleBackColor = true;
-            // 
-            // btn_go
-            // 
-            this.btn_go.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btn_go.Location = new System.Drawing.Point(489, 23);
-            this.btn_go.Name = "btn_go";
-            this.btn_go.Size = new System.Drawing.Size(42, 23);
-            this.btn_go.TabIndex = 4;
-            this.btn_go.Text = "Go";
-            this.btn_go.UseVisualStyleBackColor = true;
+            this.btn_find.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btn_find.Location = new System.Drawing.Point(828, 23);
+            this.btn_find.Name = "btn_find";
+            this.btn_find.Size = new System.Drawing.Size(42, 23);
+            this.btn_find.TabIndex = 4;
+            this.btn_find.Text = "Find";
+            this.btn_find.UseVisualStyleBackColor = true;
+            this.btn_find.Click += new System.EventHandler(this.btn_find_Click);
             // 
             // lbl_path
             // 
             this.lbl_path.AutoSize = true;
-            this.lbl_path.Location = new System.Drawing.Point(147, 26);
+            this.lbl_path.Location = new System.Drawing.Point(177, 28);
             this.lbl_path.Name = "lbl_path";
             this.lbl_path.Size = new System.Drawing.Size(32, 13);
             this.lbl_path.TabIndex = 5;
@@ -103,25 +94,25 @@
             // 
             // txt_path
             // 
-            this.txt_path.Location = new System.Drawing.Point(185, 23);
+            this.txt_path.Location = new System.Drawing.Point(225, 25);
             this.txt_path.Name = "txt_path";
-            this.txt_path.Size = new System.Drawing.Size(277, 20);
+            this.txt_path.Size = new System.Drawing.Size(426, 20);
             this.txt_path.TabIndex = 7;
             // 
             // treeView1
             // 
             this.treeView1.Location = new System.Drawing.Point(17, 70);
             this.treeView1.Name = "treeView1";
-            this.treeView1.Size = new System.Drawing.Size(121, 310);
+            this.treeView1.Size = new System.Drawing.Size(192, 405);
             this.treeView1.TabIndex = 8;
             this.treeView1.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.treeView1_AfterSelect);
             // 
             // listView1
             // 
             this.listView1.HideSelection = false;
-            this.listView1.Location = new System.Drawing.Point(150, 70);
+            this.listView1.Location = new System.Drawing.Point(225, 70);
             this.listView1.Name = "listView1";
-            this.listView1.Size = new System.Drawing.Size(394, 310);
+            this.listView1.Size = new System.Drawing.Size(426, 405);
             this.listView1.TabIndex = 9;
             this.listView1.UseCompatibleStateImageBehavior = false;
             // 
@@ -133,25 +124,33 @@
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.txt_find);
             this.panel1.Controls.Add(this.lbl_path);
             this.panel1.Controls.Add(this.txt_path);
             this.panel1.Controls.Add(this.treeView1);
             this.panel1.Controls.Add(this.listView1);
             this.panel1.Controls.Add(this.btn_back);
             this.panel1.Controls.Add(this.btn_next);
-            this.panel1.Controls.Add(this.btn_go);
-            this.panel1.Controls.Add(this.btn_open);
+            this.panel1.Controls.Add(this.btn_find);
             this.panel1.Controls.Add(this.webBrowser1);
             this.panel1.Location = new System.Drawing.Point(22, 12);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(668, 410);
+            this.panel1.Size = new System.Drawing.Size(962, 496);
             this.panel1.TabIndex = 11;
+            // 
+            // txt_find
+            // 
+            this.txt_find.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.txt_find.Location = new System.Drawing.Point(674, 24);
+            this.txt_find.Name = "txt_find";
+            this.txt_find.Size = new System.Drawing.Size(148, 20);
+            this.txt_find.TabIndex = 11;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(710, 449);
+            this.ClientSize = new System.Drawing.Size(1024, 684);
             this.Controls.Add(this.panel1);
             this.Name = "Form1";
             this.Text = "Form1";
@@ -167,14 +166,14 @@
         private System.Windows.Forms.WebBrowser webBrowser1;
         private System.Windows.Forms.Button btn_back;
         private System.Windows.Forms.Button btn_next;
-        private System.Windows.Forms.Button btn_open;
-        private System.Windows.Forms.Button btn_go;
+        private System.Windows.Forms.Button btn_find;
         private System.Windows.Forms.Label lbl_path;
         private System.Windows.Forms.TextBox txt_path;
         private System.Windows.Forms.TreeView treeView1;
         private System.Windows.Forms.ListView listView1;
         private System.Windows.Forms.ImageList imageList1;
         private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.TextBox txt_find;
     }
 }
 
