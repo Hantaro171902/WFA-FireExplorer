@@ -54,9 +54,11 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="FormatHelper.cs" />
     <Compile Include="HistoryManager.cs" />
     <Compile Include="IconHelper.cs" />
     <Compile Include="IconManager.cs" />
+    <Compile Include="ImageListManager.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SearchService.cs" />

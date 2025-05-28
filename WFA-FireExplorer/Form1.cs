@@ -15,6 +15,7 @@ namespace WFA_FireExplorer
     public partial class Form1 : Form
     {
         private List<string> navHistory = new List<string>();
+        private string currentPath;
         private int currHistoryIdx = -1;
         private ImageList icons; // Declare the ImageList here
         private IconManager iconManager;
@@ -286,10 +287,9 @@ namespace WFA_FireExplorer
 
         private void treeView1_AfterSelect(object sender, TreeViewEventArgs e)
         {
-            if (e.Node?.Tag is string path && Directory.Exists(path))
-            {
-                NavigateTo(path);   // This automatically adds to history now
-            }
+            string selectedPath = e.Node.FullPath;
+            currentPath = selectedPath; // Update currentPath to the selected node's path
+            LoadFilesInListView(currentPath); // Load files in the ListView based on the selected node
         }
 
         private void listView1_SelectedIndexChanged(object sender, EventArgs e)
@@ -331,22 +331,48 @@ namespace WFA_FireExplorer
             }
         }
 
-        //private void LoadFilesInListView(string path)
-        //{
-        //    listView1.Items.Clear();
-        //    try
-        //    {
-        //        var dir = new DirectoryInfo(path);
-        //        foreach (var file in dir.GetFiles())
-        //        {
-        //            listView1.Items.Add(new ListViewItem(file.Name));
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        MessageBox.Show("Error reading folder: " + ex.Message);
-        //    }
-        //}
+        // Folder double-click event handler
+        private void listView1_ItemActivate(object sender, EventArgs e)
+        {
+            if (listView1.SelectedItems.Count > 0)
+            {
+                string name = listView1.SelectedItems[0].Text;
+                string selectedPath = Path.Combine(currentPath,name);
+
+                if (Directory.Exists(selectedPath))
+                {
+                    currentPath = selectedPath;
+                    LoadFilesInListView(currentPath);
+                }
+            }
+        }
+
+        private void LoadFilesInListView(string path)
+        {
+            listView1.Items.Clear();
+
+            List<FileInfo> files = FileManager.GetFilesInDir(path);
+
+            foreach (var fileInfo in files)
+            {
+                string name = fileInfo.Name;
+                string extension = fileInfo.Extension.ToLower();
+                string type = string.IsNullOrEmpty(extension) ? "File" : extension;
+                string size = FormatHelper.FormatSize(fileInfo.Length);
+                string date = fileInfo.LastWriteTime.ToString("yyyy-MM-dd HH:mm");
+
+                ListViewItem item = new ListViewItem(name);
+                item.SubItems.Add(type);
+                item.SubItems.Add(size);
+                item.SubItems.Add(date);
+
+                ImageListManager.EnsureIconForFile(imageList1, fileInfo.FullName);
+                item.ImageKey = extension;
+
+                listView1.Items.Add(item);
+            }
+        }
+
 
         private string GetFullPathFromTreeNode(TreeNode node)
         {
