@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 
-public class FileManager
+public static class FileManager
 {
-	public static IEnumerable<DirInfo> GetSubDirs(string path)
+	public static IEnumerable<DirectoryInfo> GetSubDirs(string path)
 	{
 		var dirInfo = new DirectoryInfo(path);
 		return dirInfo.GetDirectories()

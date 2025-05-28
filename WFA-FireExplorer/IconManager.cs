@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
+using System.Windows.Forms;
 
 
 public class IconManager
 {
-	public ImageList Icons { get; set; };
+	public ImageList Icons { get; set; }
 
     public IconManager()
 	{
