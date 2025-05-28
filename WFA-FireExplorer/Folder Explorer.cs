@@ -30,6 +30,37 @@ namespace WFA_FireExplorer
             listView1.Columns.Add("Name", 200);
             listView1.Columns.Add("Type", 100);
             listView1.FullRowSelect = true;
+            listView1.HideSelection = false;
+            listView1.MultiSelect = false;
+            listView1.AllowColumnReorder = true;
+            listView1.GridLines = true;
+            listView1.SmallImageList = icons; // Set the ImageList for the ListView
+            listView1.ItemSelectionChanged += (s, e) => { if (e.IsSelected) txt_path.Text = e.Item.Tag as string; };
+            listView1.DoubleClick += (s, e) =>
+            {
+                if (listView1.SelectedItems.Count > 0)
+                {
+                    string selectedPath = listView1.SelectedItems[0].Tag as string;
+                    if (Directory.Exists(selectedPath))
+                    {
+                        NavigateTo(selectedPath);
+                    }
+                    else if (File.Exists(selectedPath))
+                    {
+                        System.Diagnostics.Process.Start(selectedPath); // Open the file
+                    }
+                }
+            };
+            
+
+            treeView1.ImageList = icons; // Set the ImageList for the TreeView
+            treeView1.ShowLines = true;
+            treeView1.ShowPlusMinus = true;
+            treeView1.ShowRootLines = true;
+            //treeView1.BeforeExpand += treeView1_BeforeExpand;
+
+            var folderIcon = IconHelper.GetFileIcon(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), true);
+            icons.Images.Add("folder", folderIcon); // Add a default folder icon
 
         }
 
@@ -60,7 +91,9 @@ namespace WFA_FireExplorer
         {
             TreeNode node = new TreeNode(dir.Name)
             {
-                Tag = dir.FullName // Store the full path in the tag
+                Tag = dir.FullName, // Store the full path in the tag
+                ImageKey = "folder", // Use the folder icon
+                SelectedImageKey = "folder"
             };
             try
             {
@@ -201,8 +234,26 @@ namespace WFA_FireExplorer
             }
         }
 
-
-
+        private void treeView1_BeforeExpand(object sender, TreeViewCancelEventArgs e)
+        {
+            if (e.Node?.Tag is string path && Directory.Exists(path))
+            {
+                e.Node.Nodes.Clear(); // Clear existing nodes
+                try
+                {
+                    var dirInfo = new DirectoryInfo(path);
+                    foreach (var subDir in dirInfo.GetDirectories())
+                    {
+                        var subNode = CreateDirNode(subDir);
+                        e.Node.Nodes.Add(subNode);
+                    }
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    // Handle access denied exceptions
+                }
+            }
+        }
 
         private void treeView1_AfterSelect(object sender, TreeViewEventArgs e)
         {
