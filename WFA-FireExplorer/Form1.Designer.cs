@@ -29,7 +29,6 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.webBrowser1 = new System.Windows.Forms.WebBrowser();
             this.btn_back = new System.Windows.Forms.Button();
             this.btn_next = new System.Windows.Forms.Button();
             this.btn_find = new System.Windows.Forms.Button();
@@ -40,15 +39,11 @@
             this.imageList1 = new System.Windows.Forms.ImageList(this.components);
             this.panel1 = new System.Windows.Forms.Panel();
             this.txt_find = new System.Windows.Forms.TextBox();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.panel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
-            // 
-            // webBrowser1
-            // 
-            this.webBrowser1.Location = new System.Drawing.Point(674, 70);
-            this.webBrowser1.Name = "webBrowser1";
-            this.webBrowser1.Size = new System.Drawing.Size(269, 405);
-            this.webBrowser1.TabIndex = 10;
             // 
             // btn_back
             // 
@@ -124,6 +119,8 @@
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.richTextBox1);
+            this.panel1.Controls.Add(this.pictureBox1);
             this.panel1.Controls.Add(this.txt_find);
             this.panel1.Controls.Add(this.lbl_path);
             this.panel1.Controls.Add(this.txt_path);
@@ -132,7 +129,6 @@
             this.panel1.Controls.Add(this.btn_back);
             this.panel1.Controls.Add(this.btn_next);
             this.panel1.Controls.Add(this.btn_find);
-            this.panel1.Controls.Add(this.webBrowser1);
             this.panel1.Location = new System.Drawing.Point(22, 12);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(962, 496);
@@ -146,6 +142,22 @@
             this.txt_find.Size = new System.Drawing.Size(148, 20);
             this.txt_find.TabIndex = 11;
             // 
+            // pictureBox1
+            // 
+            this.pictureBox1.Location = new System.Drawing.Point(674, 70);
+            this.pictureBox1.Name = "pictureBox1";
+            this.pictureBox1.Size = new System.Drawing.Size(248, 229);
+            this.pictureBox1.TabIndex = 12;
+            this.pictureBox1.TabStop = false;
+            // 
+            // richTextBox1
+            // 
+            this.richTextBox1.Location = new System.Drawing.Point(674, 305);
+            this.richTextBox1.Name = "richTextBox1";
+            this.richTextBox1.Size = new System.Drawing.Size(248, 170);
+            this.richTextBox1.TabIndex = 13;
+            this.richTextBox1.Text = "";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -157,13 +169,12 @@
             this.Load += new System.EventHandler(this.Form1_Load);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
 
         }
 
         #endregion
-
-        private System.Windows.Forms.WebBrowser webBrowser1;
         private System.Windows.Forms.Button btn_back;
         private System.Windows.Forms.Button btn_next;
         private System.Windows.Forms.Button btn_find;
@@ -174,6 +185,8 @@
         private System.Windows.Forms.ImageList imageList1;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.TextBox txt_find;
+        private System.Windows.Forms.RichTextBox richTextBox1;
+        private System.Windows.Forms.PictureBox pictureBox1;
     }
 }
 

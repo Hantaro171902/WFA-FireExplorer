@@ -25,10 +25,25 @@ namespace WFA_FireExplorer
             // Initialize the ImageList in the constructor
             icons = new ImageList();
             icons.ImageSize = new Size(16, 16);
+
+            imageList1.Images.Add("folder", SystemIcons.WinLogo); // or your own icon
+            imageList1.Images.Add("file", SystemIcons.Application);
+
+            treeView1.ImageList = imageList1;
+            listView1.SmallImageList = imageList1;
+
+
             listView1.SmallImageList = icons;
             listView1.View = View.Details;
             listView1.Columns.Add("Name", 200);
             listView1.Columns.Add("Type", 100);
+            listView1.Columns.Add("Size", 100);
+            listView1.Columns.Add("Date Modified", 150);
+            listView1.Columns.Add("Path", 200);
+
+            listView1.Columns[4].Width = 0; // Hide the Path column
+            listView1.Columns[4].Tag = "Path"; // Store the column name in the Tag property
+
             listView1.FullRowSelect = true;
             listView1.HideSelection = false;
             listView1.MultiSelect = false;
@@ -62,6 +77,13 @@ namespace WFA_FireExplorer
             var folderIcon = IconHelper.GetFileIcon(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), true);
             icons.Images.Add("folder", folderIcon); // Add a default folder icon
 
+            TreeNode node = new TreeNode("MyFolder");
+            node.ImageKey = "folder"; // Use the folder icon
+            node.SelectedImageKey = "folder"; // Use the folder icon when selected
+
+            ListViewItem item = new ListViewItem("MyFile.txt");
+            item.ImageKey = "file"; // Use the file icon
+
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -70,8 +92,11 @@ namespace WFA_FireExplorer
             string startupPath = @"C:\";
 
             LoadDirTree(homePath);     // TreeView shows user home
-            NavigateToHistory(startupPath);   // ListView shows C:\
+            NavigateTo(startupPath, addToHistory: true);  // Navigate ListView to C:\ (and save it in history)   // ListView shows C:\
+        
         }
+
+
 
         private void LoadDirTree(string rootPath)
         {
@@ -133,7 +158,7 @@ namespace WFA_FireExplorer
             }
         }
 
-        private void NavigateTo(string path)
+        private void NavigateTo(string path, bool addToHistory = true)
         {
 
             try
@@ -236,7 +261,7 @@ namespace WFA_FireExplorer
                 currHistoryIdx--;
                 string path = navHistory[currHistoryIdx];
                 //txt_path.Text = path;
-                NavigateTo(path);
+                NavigateTo(path, addToHistory: false);
             }
         }
 
@@ -247,7 +272,7 @@ namespace WFA_FireExplorer
                 currHistoryIdx++;
                 string path = navHistory[currHistoryIdx];
                 //txt_path.Text = path;
-                NavigateTo(path);
+                NavigateTo(path, addToHistory: false);
             }
         }
 
@@ -276,26 +301,65 @@ namespace WFA_FireExplorer
         {
             if (e.Node?.Tag is string path && Directory.Exists(path))
             {
-                NavigateToHistory(path);
+                NavigateTo(path);   // This automatically adds to history now
             }
         }
 
-        private void LoadFilesInListView(string path)
+        private void listView1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            listView1.Items.Clear();
-            try
+            if (listView1.SelectedItems.Count == 0) return;
+
+            var item = listView1.SelectedItems[0];
+            string path = item.Tag.ToString();
+
+            pictureBox1.Visible = false; // Hide the picture box initially
+            richTextBox1.Visible = false; // Hide the rich text box initially
+
+            if (File.Exists(path))
             {
-                var dir = new DirectoryInfo(path);
-                foreach (var file in dir.GetFiles())
+                // If it's a file, show its content in the rich text box
+                try
                 {
-                    listView1.Items.Add(new ListViewItem(file.Name));
+                    string ext = Path.GetExtension(path).ToLower();
+                    if (ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".bmp")
+                    {
+                        pictureBox1.Image = Image.FromFile(path);
+                        pictureBox1.Visible = true;
+                    }
+                    else if (ext == ".txt" || ext == ".log" || ext == ".md")
+                    {
+                        richTextBox1.Text = File.ReadAllText(path);
+                        richTextBox1.Visible = true;
+                    }
+                    else
+                    {
+                        richTextBox1.Text = "Preview not available";
+                        richTextBox1.Visible = true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error loading file: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error reading folder: " + ex.Message);
-            }
         }
+
+        //private void LoadFilesInListView(string path)
+        //{
+        //    listView1.Items.Clear();
+        //    try
+        //    {
+        //        var dir = new DirectoryInfo(path);
+        //        foreach (var file in dir.GetFiles())
+        //        {
+        //            listView1.Items.Add(new ListViewItem(file.Name));
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        MessageBox.Show("Error reading folder: " + ex.Message);
+        //    }
+        //}
 
         private string GetFullPathFromTreeNode(TreeNode node)
         {
@@ -359,5 +423,69 @@ namespace WFA_FireExplorer
 
             }
         }
+
+        private void AddIconToImageListIfMissing(string extension)
+        {
+            if (!imageList1.Images.ContainsKey(extension))
+            {
+                Icon icon = IconHelper.GetFileIcon("dummy" + extension, false);
+                imageList1.Images.Add(extension, icon);
+            }
+        }
+
+        private void LoadFilesInListView(string path)
+        {
+            listView1.Items.Clear();
+
+            try
+            {
+                string[] files = Directory.GetFiles(path);
+
+                foreach (string file in files)
+                {
+                    FileInfo fileInfo = new FileInfo(file);
+                    string name = fileInfo.Name;
+                    string extension = fileInfo.Extension;
+                    string type = string.IsNullOrEmpty(extension) ? "File" : extension;
+                    string size = $"{fileInfo.Length / 1024} KB";
+                    string date = fileInfo.LastWriteTime.ToString("yyyy-MM-dd HH:mm");
+
+                    ListViewItem item = new ListViewItem(name);
+                    item.SubItems.Add(type);
+                    item.SubItems.Add(size);
+                    item.SubItems.Add(date);
+
+                    // Optional: Add icon if using ImageList
+                    string extKey = extension.ToLower();
+                    if (!imageList1.Images.ContainsKey(extKey))
+                    {
+                        Icon icon = IconHelper.GetFileIcon(file, false);
+                        imageList1.Images.Add(extKey, icon);
+                    }
+                    item.ImageKey = extKey;
+
+                    listView1.Items.Add(item);
+                }
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                MessageBox.Show("Access denied: " + ex.Message);
+            }
+        }
+
+
+        private string FormatSize(long bytes)
+        {
+            string[] sizes = { "B", "KB", "MB", "GB", "TB" };
+            double len = bytes;
+            int order = 0;
+            while (len >= 1024 && order < sizes.Length - 1)
+            {
+                order++;
+                len = len / 1024;
+            }
+            return $"{len:0.##} {sizes[order]}";
+        }
+
     }
 }
