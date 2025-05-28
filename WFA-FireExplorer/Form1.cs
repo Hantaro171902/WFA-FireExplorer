@@ -17,10 +17,17 @@ namespace WFA_FireExplorer
         private List<string> navHistory = new List<string>();
         private int currHistoryIdx = -1;
         private ImageList icons; // Declare the ImageList here
+        private IconManager iconManager;
+        private HistoryManager historyManager;
+        private FilePreviewer previewer;
 
         public Form1()
         {
             InitializeComponent();
+
+            iconManager = new IconManager();
+            historyManager = new HistoryManager();
+            previewer = new FilePreviewer(pictureBox1, richTextBox1);
 
             // Initialize the ImageList in the constructor
             icons = new ImageList();
@@ -67,7 +74,6 @@ namespace WFA_FireExplorer
                 }
             };
             
-
             treeView1.ImageList = icons; // Set the ImageList for the TreeView
             treeView1.ShowLines = true;
             treeView1.ShowPlusMinus = true;
@@ -95,8 +101,6 @@ namespace WFA_FireExplorer
             NavigateTo(startupPath, addToHistory: true);  // Navigate ListView to C:\ (and save it in history)   // ListView shows C:\
         
         }
-
-
 
         private void LoadDirTree(string rootPath)
         {
@@ -139,23 +143,6 @@ namespace WFA_FireExplorer
                 // Handle access denied exceptions
             }
             return node;
-        }
-
-        // Create a wrapper method for the NavigateTo function
-        private void NavigateToHistory(string path)
-        {
-            // Prevent adding duplicate entry when navigating navigating the same path
-            if (currHistoryIdx == -1 || navHistory[currHistoryIdx] != path)
-            {
-                // Remove foward history
-                if (currHistoryIdx < navHistory.Count - 1)
-                {
-                    navHistory.RemoveRange(currHistoryIdx + 1, navHistory.Count - currHistoryIdx - 1);
-
-                }
-                navHistory.Add(path);
-                currHistoryIdx = navHistory.Count - 1;
-            }
         }
 
         private void NavigateTo(string path, bool addToHistory = true)
@@ -423,69 +410,5 @@ namespace WFA_FireExplorer
 
             }
         }
-
-        private void AddIconToImageListIfMissing(string extension)
-        {
-            if (!imageList1.Images.ContainsKey(extension))
-            {
-                Icon icon = IconHelper.GetFileIcon("dummy" + extension, false);
-                imageList1.Images.Add(extension, icon);
-            }
-        }
-
-        private void LoadFilesInListView(string path)
-        {
-            listView1.Items.Clear();
-
-            try
-            {
-                string[] files = Directory.GetFiles(path);
-
-                foreach (string file in files)
-                {
-                    FileInfo fileInfo = new FileInfo(file);
-                    string name = fileInfo.Name;
-                    string extension = fileInfo.Extension;
-                    string type = string.IsNullOrEmpty(extension) ? "File" : extension;
-                    string size = $"{fileInfo.Length / 1024} KB";
-                    string date = fileInfo.LastWriteTime.ToString("yyyy-MM-dd HH:mm");
-
-                    ListViewItem item = new ListViewItem(name);
-                    item.SubItems.Add(type);
-                    item.SubItems.Add(size);
-                    item.SubItems.Add(date);
-
-                    // Optional: Add icon if using ImageList
-                    string extKey = extension.ToLower();
-                    if (!imageList1.Images.ContainsKey(extKey))
-                    {
-                        Icon icon = IconHelper.GetFileIcon(file, false);
-                        imageList1.Images.Add(extKey, icon);
-                    }
-                    item.ImageKey = extKey;
-
-                    listView1.Items.Add(item);
-                }
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                MessageBox.Show("Access denied: " + ex.Message);
-            }
-        }
-
-
-        private string FormatSize(long bytes)
-        {
-            string[] sizes = { "B", "KB", "MB", "GB", "TB" };
-            double len = bytes;
-            int order = 0;
-            while (len >= 1024 && order < sizes.Length - 1)
-            {
-                order++;
-                len = len / 1024;
-            }
-            return $"{len:0.##} {sizes[order]}";
-        }
-
     }
 }
